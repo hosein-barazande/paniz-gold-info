@@ -103,8 +103,7 @@
 </div>
 
 <script>
-// 🔗 آدرس فایل api.php روی سرور خودت
-const apiUrl = "https://BrsApi.ir/Api/Market/Gold_Currency.php?key=BrTJ48gCdE4j5ayeWkHpr2VFTBEuR26Y"; // ← این را با آدرس واقعی جایگزین کن
+const apiUrl = "https://BrsApi.ir/Api/Market/Gold_Currency.php?key=BrTJ48gCdE4j5ayeWkHpr2VFTBEuR26Y"; 
 
 // 🎯 گرفتن المان‌ها از صفحه
 const gold18Elem = document.getElementById("gold18");
@@ -120,29 +119,28 @@ const coinAdvice = document.getElementById("coinAdvice");
 async function getGoldData() {
   try {
     goldAnalysis.textContent = "🔎 در حال دریافت اطلاعات...";
+
     const res = await fetch(apiUrl);
     const data = await res.json();
 
-    // 🟡 قیمت‌ها
-    const gold18 = data["geram18"]["p"];
-    const worldGold = data["ons"]["p"];
-    const sekeEmami = data["sekeemami"]["p"];
-    const sekeBahar = data["sekebahar"]["p"];
-    const nim = data["nim"]["p"];
-    const rob = data["rob"]["p"];
+    // 🟡 گرفتن قیمت‌ها از آرایه gold
+    const gold18 = data.gold.find(g => g.symbol === "IR_GOLD_18K").price;
+    const worldGold = data.gold.find(g => g.symbol === "XAUUSD").price;
+    const sekeEmami = data.gold.find(g => g.symbol === "IR_COIN_EMAMI").price;
+    const sekeBahar = data.gold.find(g => g.symbol === "IR_COIN_BAHAR").price;
+    const nim = data.gold.find(g => g.symbol === "IR_COIN_HALF").price;
+    const rob = data.gold.find(g => g.symbol === "IR_COIN_QUARTER").price;
 
     // 💰 نمایش در صفحه
-    gold18Elem.textContent = `🟡 ${gold18} تومان`;
-    goldWorldElem.textContent = `🌍 ${worldGold} دلار`;
-    sekeEmamiElem.textContent = `🥇 ${sekeEmami} تومان`;
-    sekeBaharElem.textContent = `🏅 ${sekeBahar} تومان`;
-    nimElem.textContent = `🥈 ${nim} تومان`;
-    robElem.textContent = `🥉 ${rob} تومان`;
+    gold18Elem.textContent = `🟡 ${gold18.toLocaleString()} تومان`;
+    goldWorldElem.textContent = `🌍 ${worldGold.toLocaleString()} دلار`;
+    sekeEmamiElem.textContent = `🥇 ${sekeEmami.toLocaleString()} تومان`;
+    sekeBaharElem.textContent = `🏅 ${sekeBahar.toLocaleString()} تومان`;
+    nimElem.textContent = `🥈 ${nim.toLocaleString()} تومان`;
+    robElem.textContent = `🥉 ${rob.toLocaleString()} تومان`;
 
     // 📈 تحلیل خرید طلا
-    const iranPrice = parseFloat(gold18.replace(/,/g, ""));
-    const worldPrice = parseFloat(worldGold.replace(/,/g, ""));
-    analyzeGold(iranPrice, worldPrice);
+    analyzeGold(gold18, worldGold);
 
     // 💹 تحلیل حباب سکه
     analyzeCoin(sekeEmami, sekeBahar, nim, rob);
@@ -180,10 +178,10 @@ function analyzeGold(iranPrice, worldPrice) {
 // 💡 تحلیل ساده حباب سکه‌ها
 function analyzeCoin(emami, bahar, nim, rob) {
   const coins = [
-    { name: "سکه امامی", value: parseFloat(emami.replace(/,/g, "")), emoji: "🥇" },
-    { name: "سکه بهار آزادی", value: parseFloat(bahar.replace(/,/g, "")), emoji: "🏅" },
-    { name: "نیم سکه", value: parseFloat(nim.replace(/,/g, "")), emoji: "🥈" },
-    { name: "ربع سکه", value: parseFloat(rob.replace(/,/g, "")), emoji: "🥉" },
+    { name: "سکه امامی", value: emami, emoji: "🥇" },
+    { name: "سکه بهار آزادی", value: bahar, emoji: "🏅" },
+    { name: "نیم سکه", value: nim, emoji: "🥈" },
+    { name: "ربع سکه", value: rob, emoji: "🥉" },
   ];
 
   // کمترین اختلاف = بهترین خرید
@@ -194,8 +192,8 @@ function analyzeCoin(emami, bahar, nim, rob) {
 // 🚀 اجرای اولیه + بروزرسانی خودکار هر ۲ دقیقه
 getGoldData();
 setInterval(getGoldData, 120000);
-
 </script>
+
 
 </body>
 </html>
