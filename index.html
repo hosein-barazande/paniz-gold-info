@@ -89,11 +89,23 @@
     <div class="price-item"><span>🏅 سکه بهار آزادی:</span> <span id="sekeBahar">⏳</span></div>
     <div class="price-item"><span>🥈 نیم سکه:</span> <span id="nim">⏳</span></div>
     <div class="price-item"><span>🥉 ربع سکه:</span> <span id="rob">⏳</span></div>
+    <div class="price-item"><span>💵 قیمت دلار:</span> <span id="dolarprice">⏳</span></div>
+    <div class="price-item"><span>💲 قیمت تتر:</span> <span id="tetherprice">⏳</span></div>
   </div>
 
   <div class="analysis">
     <h3>📊 تحلیل امروز بازار</h3>
+    <p id="goldBobel"> در حال دریافت اطلاعات...</p>
+    
+    <p id="coinBobel"> در حال دریافت اطلاعات...</p>
+
+    <p id="halfCoinBobel"> در حال دریافت اطلاعات...</p>
+
+    <p id="quarterCoinBobel"> در حال دریافت اطلاعات...</p>
+
+
     <p id="goldAnalysis">در حال دریافت اطلاعات...</p>
+
     <p id="coinAdvice">💬 منتظر تحلیل...</p>
   </div>
 
@@ -114,6 +126,12 @@ const nimElem = document.getElementById("nim");
 const robElem = document.getElementById("rob");
 const goldAnalysis = document.getElementById("goldAnalysis");
 const coinAdvice = document.getElementById("coinAdvice");
+const goldBobel = document.getElementById("goldBobel");
+const coinBobel = document.getElementById("coinBobel");
+const halfCoinBobel = document.getElementById("halfCoinBobel");
+const quarterCoinBobel = document.getElementById("quarterCoinBobel");
+const dolarpriceElem = document.getElementById("dolarprice");
+const tetherpriceElem = document.getElementById("tetherprice");
 
 // ⚙️ تابع اصلی دریافت داده‌ها
 async function getGoldData() {
@@ -130,6 +148,9 @@ async function getGoldData() {
     const sekeBahar = data.gold.find(g => g.symbol === "IR_COIN_BAHAR").price;
     const nim = data.gold.find(g => g.symbol === "IR_COIN_HALF").price;
     const rob = data.gold.find(g => g.symbol === "IR_COIN_QUARTER").price;
+    const dollar = data.currency.find(c => c.symbol === "USD")?.price;
+    const tether = data.currency.find(c => c.symbol === "USDT_IRT")?.price;
+    const dollarRate = data.currency.find(c => c.symbol === "USD")?.price;
 
     // 💰 نمایش در صفحه
     gold18Elem.textContent = `🟡 ${gold18.toLocaleString()} تومان`;
@@ -138,6 +159,8 @@ async function getGoldData() {
     sekeBaharElem.textContent = `🏅 ${sekeBahar.toLocaleString()} تومان`;
     nimElem.textContent = `🥈 ${nim.toLocaleString()} تومان`;
     robElem.textContent = `🥉 ${rob.toLocaleString()} تومان`;
+    dolarpriceElem.textContent = `💵 ${dollar.toLocaleString()} تومان`;
+    tetherpriceElem.textContent = `💲 ${tether.toLocaleString()} تومان`;
 
     // 📈 تحلیل خرید طلا
     analyzeGold(gold18, worldGold);
@@ -155,9 +178,9 @@ async function getGoldData() {
 }
 
 // 📊 تابع تحلیل خرید طلا
-function analyzeGold(iranPrice, worldPrice) {
+function analyzeGold(iranPrice, worldPrice, dollarRate) {
   const worldPricePerGramDollar = worldPrice / 31.1035; // هر اونس ≈ 31.1035 گرم
-  const dollarRate = 60000; // نرخ دلار تقریبی
+
   const worldPricePerGramToman = worldPricePerGramDollar * dollarRate;
 
   const diff = iranPrice - worldPricePerGramToman;
@@ -188,6 +211,7 @@ function analyzeCoin(emami, bahar, nim, rob) {
   const best = coins.reduce((a, b) => (a.value < b.value ? a : b));
   coinAdvice.innerHTML = `💰 بهترین گزینه امروز: <b>${best.emoji} ${best.name}</b> است.`;
 }
+
 
 // 🚀 اجرای اولیه + بروزرسانی خودکار هر ۲ دقیقه
 getGoldData();
