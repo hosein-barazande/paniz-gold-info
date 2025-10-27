@@ -103,66 +103,94 @@
 </div>
 
 <script>
-async function getGoldData() {
+// 🌐 آدرس API با استفاده از پراکسی برای دور زدن CORS
+const apiUrl = "https://corsproxy.io/?https://api.tgju.org/v1/market/summary";
+
+// 🎯 گرفتن المان‌ها از صفحه
+const iranGoldElem = document.getElementById("iran-gold");
+const worldGoldElem = document.getElementById("world-gold");
+const coinListElem = document.getElementById("coins");
+const suggestionElem = document.getElementById("suggestion");
+
+// ⚙️ تابع اصلی برای دریافت داده‌ها
+async function fetchGoldData() {
   try {
-    const url = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.tgju.org/v1/market/summary');
-    const res = await fetch(url);
-    const proxyData = await res.json();
-    const data = JSON.parse(proxyData.contents);
+    // ⏳ دریافت داده‌ها از API
+    const response = await fetch(apiUrl);
+    const json = await response.json();
 
-    const gold18 = Number(data['gold_18']['p']);
-    const goldWorld = Number(data['ons']['p']);
-    const sekeb = Number(data['sekeb']['p']);
-    const bahar = Number(data['bahar']['p']);
-    const nim = Number(data['nim']['p']);
-    const rob = Number(data['rob']['p']);
+    const data = json.data;
 
-    document.getElementById('gold18').textContent = gold18.toLocaleString() + ' تومان';
-    document.getElementById('goldWorld').textContent = goldWorld.toLocaleString() + ' دلار';
-    document.getElementById('sekeb').textContent = sekeb.toLocaleString() + ' تومان';
-    document.getElementById('bahar').textContent = bahar.toLocaleString() + ' تومان';
-    document.getElementById('nim').textContent = nim.toLocaleString() + ' تومان';
-    document.getElementById('rob').textContent = rob.toLocaleString() + ' تومان';
+    // 🟡 قیمت طلای ایران (۱۸ عیار)
+    const iranGold = data["geram18"]["p"];
+    iranGoldElem.textContent = `🟡 ${iranGold} تومان`;
 
-    analyzeGold(gold18, goldWorld);
-    analyzeCoins(sekeb, bahar, nim, rob);
+    // 🌎 قیمت طلای جهانی (اونس)
+    const worldGold = data["ons"]["p"];
+    worldGoldElem.textContent = `🌍 ${worldGold} دلار`;
+
+    // 💰 لیست سکه‌ها
+    const coins = [
+      { name: "سکه بهار آزادی", key: "sekebahar" },
+      { name: "سکه امامی", key: "sekeemami" },
+      { name: "نیم سکه", key: "nim" },
+      { name: "ربع سکه", key: "rob" },
+      { name: "سکه گرمی", key: "gerami" },
+    ];
+
+    // 🪙 نمایش قیمت سکه‌ها
+    coinListElem.innerHTML = coins
+      .map(c => {
+        const coin = data[c.key];
+        return `<li>💰 ${c.name}: ${coin ? coin.p + " تومان" : "❌ اطلاعات موجود نیست"}</li>`;
+      })
+      .join("");
+
+    // 📊 محاسبه صرفه اقتصادی خرید طلا
+    checkIfBuyingIsGood(parseFloat(iranGold.replace(/,/g, "")), parseFloat(worldGold.replace(/,/g, "")));
 
   } catch (err) {
-    document.getElementById('goldAnalysis').textContent = '⚠️ خطا در دریافت داده‌ها.';
-    console.error(err);
+    console.error("خطا در دریافت داده‌ها:", err);
+    iranGoldElem.textContent = "⚠️ خطا در دریافت داده‌ها";
+    worldGoldElem.textContent = "⚠️ خطا در دریافت داده‌ها";
+    coinListElem.innerHTML = "<li>❌ امکان دریافت قیمت‌ها وجود ندارد.</li>";
+    suggestionElem.textContent = "🚫 امکان محاسبه وجود ندارد.";
   }
 }
 
-function analyzeGold(gold18, goldWorld) {
-  const ratio = gold18 / (goldWorld * 60);
-  const text = document.getElementById('goldAnalysis');
+// 📈 تابع محاسبه صرفه خرید طلا
+function checkIfBuyingIsGood(iranPrice, worldPrice) {
+  // 💵 هر اونس طلا ≈ 31.1035 گرم
+  const worldPricePerGramDollar = worldPrice / 31.1035;
 
-  if (ratio < 950) {
-    text.innerHTML = '💰 <span class="good">قیمت طلا پایین‌تر از میانگین است — زمان خوبی برای خرید است.</span>';
-  } else if (ratio <= 1050) {
-    text.innerHTML = '⚖️ <span class="neutral">قیمت طلا در محدوده تعادل است. خرید با احتیاط انجام شود.</span>';
+  // نرخ تقریبی دلار (قابل تغییر)
+  const dollarRate = 60000;
+
+  // 💰 قیمت هر گرم طلا در بازار جهانی به تومان
+  const worldPricePerGramToman = worldPricePerGramDollar * dollarRate;
+
+  // 🔍 اختلاف قیمت ایران با جهانی
+  const diff = iranPrice - worldPricePerGramToman;
+  const percent = (diff / worldPricePerGramToman) * 100;
+
+  let suggestion = "";
+
+  // 💡 تحلیل اقتصادی بر اساس اختلاف
+  if (percent > 15) {
+    suggestion = "🚫 در حال حاضر خرید طلا به صرفه نیست.";
+  } else if (percent > 5) {
+    suggestion = "⚠️ خرید طلا با احتیاط انجام شود.";
   } else {
-    text.innerHTML = '🚫 <span class="bad">قیمت طلا بالاست — خرید توصیه نمی‌شود.</span>';
+    suggestion = "✅ زمان خوبی برای خرید طلا است!";
   }
+
+  suggestionElem.textContent = suggestion;
 }
 
-function analyzeCoins(sekeb, bahar, nim, rob) {
-  const gold18 = Number(document.getElementById('gold18').textContent.replace(/[^\d]/g, ''));
-  const intrinsic = gold18 * 8.13;
-  const bubble = sekeb - intrinsic;
-  const text = document.getElementById('coinAdvice');
+// 🚀 اجرای اولیه و به‌روزرسانی هر ۲ دقیقه
+fetchGoldData();
+setInterval(fetchGoldData, 120000);
 
-  if (bubble < 0) {
-    text.innerHTML = '🟢 <span class="good">حباب سکه منفی است. سکه امامی بهترین گزینه برای خرید است.</span>';
-  } else if (bubble < 500000) {
-    text.innerHTML = '🟡 <span class="neutral">حباب کم است. نیم‌سکه یا ربع‌سکه گزینه‌های منطقی‌تری هستند.</span>';
-  } else {
-    text.innerHTML = '🔴 <span class="bad">حباب بالا است. امروز سکه نخرید.</span>';
-  }
-}
-
-getGoldData();
-setInterval(getGoldData, 300000);
 </script>
 
 </body>
