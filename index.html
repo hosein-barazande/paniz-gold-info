@@ -104,7 +104,8 @@
 
 <script>
 // 🌐 آدرس API با پراکسی برای دور زدن محدودیت CORS
-const apiUrl = "https://corsproxy.io/?https://api.tgju.org/v1/market/summary";
+const apiUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://api.tgju.org/v1/market/summary");
+
 
 // 🎯 گرفتن المان‌ها
 const gold18Elem = document.getElementById("gold18");
