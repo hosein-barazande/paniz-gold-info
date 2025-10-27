@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ماشین‌حساب طلا و سکه</title>
+<style>
+  body {
+    font-family: 'Vazir', Tahoma, sans-serif;
+    direction: rtl;
+    background: linear-gradient(180deg, #fff8e1, #fff);
+    color: #333;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    background: linear-gradient(90deg, #d4af37, #b8860b);
+    color: #fff;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 1.3em;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .container {
+    max-width: 600px;
+    margin: auto;
+    padding: 15px;
+  }
+  .price-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    padding: 15px 20px;
+    margin: 15px 0;
+    transition: 0.3s;
+  }
+  .price-card:hover { transform: scale(1.02); }
+  .price-item {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed #ddd;
+    padding: 6px 0;
+  }
+  .analysis {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    padding: 15px 20px;
+    margin-top: 25px;
+  }
+  .good { color: #388e3c; font-weight: bold; }
+  .bad { color: #d32f2f; font-weight: bold; }
+  .neutral { color: #f57c00; font-weight: bold; }
+  .refresh-btn {
+    display: block;
+    width: 100%;
+    background: linear-gradient(90deg, #d4af37, #b8860b);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 20px;
+  }
+  .refresh-btn:hover {
+    background: linear-gradient(90deg, #b8860b, #d4af37);
+  }
+  footer {
+    text-align: center;
+    color: #999;
+    font-size: 0.8em;
+    padding: 15px 0 30px;
+  }
+</style>
+</head>
+<body>
+
+<header>📊 ماشین‌حساب لحظه‌ای طلا و سکه</header>
+
+<div class="container">
+  <div class="price-card">
+    <h3>قیمت‌های لحظه‌ای</h3>
+    <div class="price-item"><span>طلای ۱۸ عیار:</span> <span id="gold18">...</span></div>
+    <div class="price-item"><span>طلای جهانی (اونس):</span> <span id="goldWorld">...</span></div>
+    <div class="price-item"><span>سکه امامی:</span> <span id="sekeb">...</span></div>
+    <div class="price-item"><span>سکه بهار آزادی:</span> <span id="bahar">...</span></div>
+    <div class="price-item"><span>نیم سکه:</span> <span id="nim">...</span></div>
+    <div class="price-item"><span>ربع سکه:</span> <span id="rob">...</span></div>
+  </div>
+
+  <div class="analysis">
+    <h3>تحلیل امروز</h3>
+    <p id="goldAnalysis">در حال دریافت اطلاعات...</p>
+    <p id="coinAdvice"></p>
+  </div>
+
+  <button class="refresh-btn" onclick="getGoldData()">🔄 بروزرسانی دستی</button>
+
+  <footer>© 2025 ماشین‌حساب طلا و سکه | حسین برازنده</footer>
+</div>
+
+<script>
+async function getGoldData() {
+  try {
+    const url = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.tgju.org/v1/market/summary');
+    const res = await fetch(url);
+    const proxyData = await res.json();
+    const data = JSON.parse(proxyData.contents);
+
+    const gold18 = Number(data['gold_18']['p']);
+    const goldWorld = Number(data['ons']['p']);
+    const sekeb = Number(data['sekeb']['p']);
+    const bahar = Number(data['bahar']['p']);
+    const nim = Number(data['nim']['p']);
+    const rob = Number(data['rob']['p']);
+
+    document.getElementById('gold18').textContent = gold18.toLocaleString() + ' تومان';
+    document.getElementById('goldWorld').textContent = goldWorld.toLocaleString() + ' دلار';
+    document.getElementById('sekeb').textContent = sekeb.toLocaleString() + ' تومان';
+    document.getElementById('bahar').textContent = bahar.toLocaleString() + ' تومان';
+    document.getElementById('nim').textContent = nim.toLocaleString() + ' تومان';
+    document.getElementById('rob').textContent = rob.toLocaleString() + ' تومان';
+
+    analyzeGold(gold18, goldWorld);
+    analyzeCoins(sekeb, bahar, nim, rob);
+
+  } catch (err) {
+    document.getElementById('goldAnalysis').textContent = '⚠️ خطا در دریافت داده‌ها.';
+    console.error(err);
+  }
+}
+
+function analyzeGold(gold18, goldWorld) {
+  const ratio = gold18 / (goldWorld * 60);
+  const text = document.getElementById('goldAnalysis');
+
+  if (ratio < 950) {
+    text.innerHTML = '💰 <span class="good">قیمت طلا پایین‌تر از میانگین است — زمان خوبی برای خرید است.</span>';
+  } else if (ratio <= 1050) {
+    text.innerHTML = '⚖️ <span class="neutral">قیمت طلا در محدوده تعادل است. خرید با احتیاط انجام شود.</span>';
+  } else {
+    text.innerHTML = '🚫 <span class="bad">قیمت طلا بالاست — خرید توصیه نمی‌شود.</span>';
+  }
+}
+
+function analyzeCoins(sekeb, bahar, nim, rob) {
+  const gold18 = Number(document.getElementById('gold18').textContent.replace(/[^\d]/g, ''));
+  const intrinsic = gold18 * 8.13;
+  const bubble = sekeb - intrinsic;
+  const text = document.getElementById('coinAdvice');
+
+  if (bubble < 0) {
+    text.innerHTML = '🟢 <span class="good">حباب سکه منفی است. سکه امامی بهترین گزینه برای خرید است.</span>';
+  } else if (bubble < 500000) {
+    text.innerHTML = '🟡 <span class="neutral">حباب کم است. نیم‌سکه یا ربع‌سکه گزینه‌های منطقی‌تری هستند.</span>';
+  } else {
+    text.innerHTML = '🔴 <span class="bad">حباب بالا است. امروز سکه نخرید.</span>';
+  }
+}
+
+getGoldData();
+setInterval(getGoldData, 300000);
+</script>
+
+</body>
+</html>
